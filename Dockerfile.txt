@@ -1,0 +1,55 @@
+FROM centos:6
+
+
+#Install Dependencies
+
+RUN yum -y update && \
+        gcc \
+        sudo \
+        tar \
+        wget \
+	initscripts \
+RUN yum clean all
+
+# Download JDK
+#RUN cd /opt;wget https://s3.amazonaws.com//jdk-7u67-linux-x64.tar.gz
+RUN cd /opt;wget http://app.nidc.kr/java/jdk-7u67-linux-x64.tar.gz
+#gunzip JDK
+RUN cd /opt;gunzip jdk-7u67-linux-x64.tar.gz
+RUN cd /opt;tar xvf jdk-7u67-linux-x64.tar
+RUN alternatives --install /usr/bin/java java /opt/jdk1.7.0_67/bin/java 2
+# Download Apache Tomcat 7
+#RUN cd /tmp;wget https://s3.amazonaws.com//apache-tomcat-7.0.55.tar.gz
+RUN cd /tmp;wget https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz
+
+# untar and move to proper location
+RUN cd /tmp;gunzip apache-tomcat-7.0.55.tar.gz
+RUN cd /tmp;tar xvf apache-tomcat-7.0.55.tar
+RUN cd /tmp;mv apache-tomcat-7.0.55 /opt/tomcat7
+RUN chmod -R 755 /opt/tomcat7
+ENV JAVA_HOME /opt/jdk1.7.0_67
+EXPOSE 8080
+CMD /opt/tomcat7/bin/catalina.sh run
+
+
+
+# Install python 2.7
+
+RUN cd /tmp && \
+    wget https://www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz && \
+    tar xvfz Python-2.7.8.tgz && \
+    cd Python-2.7.8 && \
+    ./configure --prefix=/usr/local && \
+    make && \
+    make altinstall
+
+
+#Install MongoDB
+
+RUN yum -y update; yum clean all
+RUN yum -y install epel-release; yum clean all
+RUN yum -y install mongodb-server; yum clean all
+RUN mkdir -p /data/db
+
+EXPOSE 27017
+ENTRYPOINT ["/usr/bin/mongod"]
